@@ -1,0 +1,36 @@
+version: '3.5'
+
+services:
+
+  calibre-web:
+    image: linuxserver/calibre-web
+    container_name: calibre-web
+    restart: unless-stopped
+    ports:
+      - 8083:8083
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    volumes:
+      - $DCONFDIR/calibre-web:/config
+      - $DMEDIADIR:/books
+
+  calibre-weblib:
+    image: linuxserver/calibre-web
+    container_name: calibre-weblib
+    restart: unless-stopped
+    ports:
+      - 8084:8083
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    volumes:
+      - $DCONFDIR/calibre-weblib:/config
+      - $DMEDIADIR/Library/:/books
+
+networks:
+    default:
+        external:  
+            name: rpi-dock
