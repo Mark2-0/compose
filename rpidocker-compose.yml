@@ -1,0 +1,82 @@
+version: '3.5'
+
+services:
+
+  organizr:
+    image: organizr/organizr
+    container_name: organizr
+    restart: unless-stopped
+    ports:
+      - 31245:80
+    environment:
+      - fpm=true
+      - branch=v2-master
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    volumes:
+      - $DCONFDIR/organizrv2:/config
+
+  jackett:
+    image: linuxserver/jackett
+    container_name: jackett
+    restart: unless-stopped
+    ports:
+      - 12349:9117
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    volumes:
+      - $DCONFDIR/jackett:/config
+      - $DMEDIADIR/downloads:/downloads
+
+  syncthing:
+    image: linuxserver/syncthing
+    container_name: syncthing
+    restart: unless-stopped
+    ports:
+      - 8385:8384
+      - 22001:22000
+      - 21028:21027/udp
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    volumes:
+      - $DCONFDIR/syncthing:/config
+      - $DMEDIADIR:/sync
+
+  duckdns:
+    image: linuxserver/duckdns
+    container_name: duckdns
+    restart: unless-stopped
+    environment:
+      - TZ=$TZ
+      - SUBDOMAINS=$SUBDOMAIN
+      - TOKEN=$DUCKTOKEN
+      - LOG_FILE=false
+
+  ouroboros:
+    container_name: ouroboros
+    image: gmt2001/ouroboros
+    restart: unless-stopped
+    environment:
+      - CLEANUP=true
+      - INTERVAL=300
+      - LOG_LEVEL=info
+      - SELF_UPDATE=true
+      - IGNORE=mongo influxdb postgres mariadb
+      - MONITOR=duckdns syncthing jackett organizr portainer
+      - TZ=$TZ
+    volumes:
+      - $DSOCK
+
+volumes:
+  duckdns-data:
+    external: false
+
+networks:
+    default:
+        external:
+            name: rpi-dock
